@@ -1,6 +1,6 @@
 {
-  "name": "@pang/cli",
-  "version": "1.0.1",
+  "name": "@panglehaoya/cli",
+  "version": "1.0.2",
   "description": "",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -105,7 +105,7 @@
     "sass-loader": "^8.0.2",
     "style-loader": "^1.2.1",
     "stylelint": "^13.5.0",
-    "typescript": "^3.9.3",
+    "typescript": "^4.5.5",
     "vue-jest": "4.0.0-rc.0",
     "vue-loader": "^15.9.2",
     "vue-router": "^3.3.1",
@@ -113,15 +113,6 @@
     "webpack-dev-server": "3.11.0",
     "webpack-merge": "^5.8.0",
     "webpackbar": "^4.0.0"
-  },
-  "release-it": {
-    "git": {
-      "tag": false,
-      "commitMessage": "chore: release @pang/cli@${version}"
-    },
-    "npm": {
-      "tag": "latest-v2"
-    }
   },
   "eslintConfig": {
     "root": true,
