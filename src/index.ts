@@ -15,7 +15,7 @@ import { changelog } from './commands/changelog';
 import { buildSite } from './commands/build-site';
 import { commitLint } from './commands/commit-lint';
 
-version(`@vant/cli ${packageJson.version}`);
+version(`@panglehaoya/cli ${packageJson.version}`);
 
 process.env.VANT_CLI_VERSION = packageJson.version;
 

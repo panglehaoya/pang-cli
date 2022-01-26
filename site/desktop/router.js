@@ -5,6 +5,8 @@ import { config, documents } from 'site-desktop-shared';
 import { getLang, setDefaultLang } from '../common/locales';
 import { listenToSyncPath, syncPathToChild } from '../common/iframe-router';
 
+console.log(documents)
+
 if (isMobile) {
   location.replace('mobile.html' + location.hash);
 }
