@@ -78,13 +78,6 @@ function resolveDocuments(components: string[]): DocumentItem[] {
   return [...staticDocs, ...docs.filter((item) => existsSync(item.path))];
 }
 
-function genInstall() {
-  return `import Vue from 'vue';
-import PackageEntry from './package-entry';
-import './package-style';
-`;
-}
-
 function genImportDocuments(items: DocumentItem[]) {
   return items
     .map((item) => `import ${item.name} from '${normalizePath(item.path)}';`)
@@ -109,16 +102,23 @@ function genExportVersion() {
   return `export const packageVersion = '${getPackageJson().version}';`;
 }
 
+function genInstall() {
+  return `import './package-style';`;
+}
+
+function genExportPackageEntry() {
+  return `export { default as packageEntry } from './package-entry';`;
+}
+
 export function genSiteDesktopShared() {
   const dirs = readdirSync(SRC_DIR);
   const documents = resolveDocuments(dirs);
 
-  const code = `${genInstall()}
-${genImportConfig()}
+  const code = `${genImportConfig()}
+${genInstall()}
 ${genImportDocuments(documents)}
 
-Vue.use(PackageEntry);
-
+${genExportPackageEntry()}
 ${genExportConfig()}
 ${genExportDocuments(documents)}
 ${genExportVersion()}

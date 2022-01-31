@@ -1,24 +1,14 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
+import { packageEntry } from 'site-desktop-shared';
 import App from './App';
-import { router } from './router';
-import { scrollToAnchor } from './utils';
 import DemoPlayground from './components/DemoPlayground';
+import { router } from './router';
 
-if (process.env.NODE_ENV !== 'production') {
-  Vue.config.productionTip = false;
-}
-
-Vue.component(DemoPlayground.name, DemoPlayground);
+window.app = createApp(App)
+  .use(router)
+  .use(packageEntry)
+  .component(DemoPlayground.name, DemoPlayground);
 
 setTimeout(() => {
-  new Vue({
-    el: '#app',
-    mounted() {
-      if (this.$route.hash) {
-        scrollToAnchor(this.$route.hash);
-      }
-    },
-    render: (h) => h(App),
-    router,
-  });
+  window.app.mount('#app');
 }, 0);

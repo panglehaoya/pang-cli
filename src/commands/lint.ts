@@ -15,7 +15,7 @@ function runCommand(
 ) {
   const spinner = ora(messages.start).start();
 
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     execa(cmd, options, {
       env: { FORCE_COLOR: true },
     })
@@ -25,7 +25,7 @@ function runCommand(
       })
       .catch((err: any) => {
         spinner.fail(messages.failed);
-        console.log(err.stdout);
+        console.log(err.stderr || err.stdout);
         resolve(false);
       });
   });
@@ -34,7 +34,7 @@ function runCommand(
 function eslint() {
   return runCommand(
     'eslint',
-    ['./src', '--fix', '--ext', SCRIPT_EXTS.join(',')],
+    ['./src', '--fix', '--ext', [SCRIPT_EXTS, '.md'].join(',')],
     {
       start: 'Running eslint...',
       succeed: 'ESLint Passed.',

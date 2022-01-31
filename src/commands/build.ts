@@ -1,6 +1,7 @@
+import execa from 'execa';
 import chokidar from 'chokidar';
 import { join, relative } from 'path';
-import { remove, copy, readdirSync } from 'fs-extra';
+import { remove, copy, readdirSync, existsSync } from 'fs-extra';
 import { clean } from './clean';
 import { CSS_LANG } from '../common/css';
 import { ora, consola, slimPath } from '../common/logger';
@@ -13,7 +14,7 @@ import { genPackageEntry } from '../compiler/gen-package-entry';
 import { genStyleDepsMap } from '../compiler/gen-style-deps-map';
 import { genComponentStyle } from '../compiler/gen-component-style';
 import { SRC_DIR, LIB_DIR, ES_DIR } from '../common/constant';
-import { genPacakgeStyle } from '../compiler/gen-package-style';
+import { genPackageStyle } from '../compiler/gen-package-style';
 import { genVeturConfig } from '../compiler/gen-vetur-config';
 import {
   isDir,
@@ -25,6 +26,7 @@ import {
   isTestDir,
   setNodeEnv,
   setModuleEnv,
+  setBuildTarget,
 } from '../common';
 
 async function compileFile(filePath: string) {
@@ -51,7 +53,7 @@ async function compileDir(dir: string) {
   const files = readdirSync(dir);
 
   await Promise.all(
-    files.map(filename => {
+    files.map((filename) => {
       const filePath = join(dir, filename);
 
       if (isDemoDir(filePath) || isTestDir(filePath)) {
@@ -67,16 +69,29 @@ async function compileDir(dir: string) {
   );
 }
 
-async function buildEs() {
-  setModuleEnv('esmodule');
+async function copySourceCode() {
   await copy(SRC_DIR, ES_DIR);
+  await copy(SRC_DIR, LIB_DIR);
+}
+
+async function buildESMOutputs() {
+  setModuleEnv('esmodule');
+  setBuildTarget('package');
   await compileDir(ES_DIR);
 }
 
-async function buildLib() {
+async function buildCJSOutputs() {
   setModuleEnv('commonjs');
-  await copy(SRC_DIR, LIB_DIR);
+  setBuildTarget('package');
   await compileDir(LIB_DIR);
+}
+
+async function buildTypeDeclarations() {
+  const tsConfig = join(process.cwd(), 'tsconfig.declaration.json');
+
+  if (existsSync(tsConfig)) {
+    await execa('tsc', ['-p', tsConfig]);
+  }
 }
 
 async function buildStyleEntry() {
@@ -84,31 +99,28 @@ async function buildStyleEntry() {
   genComponentStyle();
 }
 
-async function buildPacakgeEntry() {
+async function buildPackageScriptEntry() {
   const esEntryFile = join(ES_DIR, 'index.js');
   const libEntryFile = join(LIB_DIR, 'index.js');
-  const styleEntryFile = join(LIB_DIR, `index.${CSS_LANG}`);
 
   genPackageEntry({
     outputPath: esEntryFile,
     pathResolver: (path: string) => `./${relative(SRC_DIR, path)}`,
   });
 
-  setModuleEnv('esmodule');
-  await compileJs(esEntryFile);
+  await copy(esEntryFile, libEntryFile);
+}
 
-  genPacakgeStyle({
+async function buildPackageStyleEntry() {
+  const styleEntryFile = join(LIB_DIR, `index.${CSS_LANG}`);
+
+  genPackageStyle({
     outputPath: styleEntryFile,
     pathResolver: (path: string) => path.replace(SRC_DIR, '.'),
   });
-
-  setModuleEnv('commonjs');
-  await copy(esEntryFile, libEntryFile);
-  await compileJs(libEntryFile);
-  await compileStyle(styleEntryFile);
 }
 
-async function buildPackages() {
+async function buildBundledOutputs() {
   setModuleEnv('esmodule');
   await compilePackage(false);
   await compilePackage(true);
@@ -117,24 +129,36 @@ async function buildPackages() {
 
 const tasks = [
   {
-    text: 'Build ESModule Outputs',
-    task: buildEs,
+    text: 'Copy Source Code',
+    task: copySourceCode,
   },
   {
-    text: 'Build Commonjs Outputs',
-    task: buildLib,
+    text: 'Build Package Script Entry',
+    task: buildPackageScriptEntry,
   },
   {
-    text: 'Build Style Entry',
+    text: 'Build Component Style Entry',
     task: buildStyleEntry,
   },
   {
-    text: 'Build Package Entry',
-    task: buildPacakgeEntry,
+    text: 'Build Package Style Entry',
+    task: buildPackageStyleEntry,
   },
   {
-    text: 'Build Packed Outputs',
-    task: buildPackages,
+    text: 'Build Type Declarations',
+    task: buildTypeDeclarations,
+  },
+  {
+    text: 'Build ESModule Outputs',
+    task: buildESMOutputs,
+  },
+  {
+    text: 'Build CommonJS Outputs',
+    task: buildCJSOutputs,
+  },
+  {
+    text: 'Build Bundled Outputs',
+    task: buildBundledOutputs,
   },
 ];
 
@@ -158,9 +182,9 @@ async function runBuildTasks() {
 }
 
 function watchFileChange() {
-  consola.info('\nWatching file changes...');
+  consola.info('Watching file changes...');
 
-  chokidar.watch(SRC_DIR).on('change', async path => {
+  chokidar.watch(SRC_DIR).on('change', async (path) => {
     if (isDemoDir(path) || isTestDir(path)) {
       return;
     }

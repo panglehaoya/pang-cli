@@ -5,6 +5,8 @@
     - [name](#name)
     - [build.css](#buildcss)
     - [build.site](#buildsite)
+    - [build.srcDir](#buildsrcdir)
+    - [build.namedExport](#buildnamedexport)
     - [site.title](#sitetitle)
     - [site.logo](#sitelogo)
     - [site.description](#sitedescription)
@@ -13,6 +15,7 @@
     - [site.baiduAnalytics](#sitebaiduanalytics)
     - [site.searchConfig](#sitesearchconfig)
     - [site.hideSimulator](#sitehidesimulator)
+    - [site.simulator.url](#sitesimulatorurl)
   - [Webpack](#webpack)
   - [Babel](#babel)
     - [默认配置](#-1)
@@ -40,7 +43,7 @@ module.exports = {
     // 标题
     title: 'Demo UI',
     // 图标
-    logo: 'https://img01.yzcdn.cn/vant/logo.png',
+    logo: 'https://img.yzcdn.cn/vant/logo.png',
     // 描述
     description: '示例组件库',
     // 左侧导航
@@ -123,6 +126,17 @@ module.exports = {
   },
 };
 ```
+
+### build.namedExport
+
+- Type: `boolean`
+- Default: `false`
+
+是否通过 Named Export 对组件进行导出。
+
+未开启此选项时，会通过 `export default from 'xxx'` 导出组件内部的默认模块。
+
+开启此选项后，会通过 `export * from 'xxx'` 导出组件内部的所有模块、类型定义。
 
 ### site.title
 
@@ -232,6 +246,13 @@ module.exports = {
 
 是否隐藏所有页面右侧的手机模拟器，默认不隐藏
 
+### site.simulator.url
+
+- Type: `string`
+- Default: -
+
+自定义手机模拟器的 iframe URL 地址。
+
 ### site.htmlPluginOptions
 
 - Type: `object`
@@ -271,33 +292,10 @@ module.exports = {
 
 - @babel/preset-env（不含 core-js）
 - @babel/preset-typescript
-- @babel/plugin-transform-runtime
 - @babel/plugin-transform-object-assign
 - @babel/plugin-proposal-optional-chaining
 - @babel/plugin-proposal-nullish-coalescing-operator
 - @vue/babel-preset-jsx
-
-### 依赖
-
-由于使用了`@babel/plugin-transform-runtime`来优化 Babel 的 helper 函数，你需要将`@babel/runtime`添加到`package.json`的依赖项：
-
-```json
-{
-  "dependencies": {
-    "@babel/runtime": "7.x"
-  }
-}
-```
-
-如果使用了 JSX 的语法，还需要将`@vue/babel-helper-vue-jsx-merge-props`添加到依赖中：
-
-```json
-{
-  "dependencies": {
-    "@vue/babel-helper-vue-jsx-merge-props": "^1.0.0"
-  }
-}
-```
 
 ## Postcss
 

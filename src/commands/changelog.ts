@@ -48,10 +48,11 @@ function transform(item: any) {
 export async function changelog(): Promise<void> {
   const spinner = ora('Generating changelog...').start();
 
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     conventionalChangelog(
       {
         preset: 'angular',
+        releaseCount: 2,
       },
       null,
       null,

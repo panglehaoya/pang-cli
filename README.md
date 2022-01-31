@@ -14,7 +14,7 @@ Vant Cli 是一个 Vue 组件库构建工具，通过 Vant Cli 可以快速搭�
 执行以下命令可以快速创建一个基于 Vant Cli 的项目：
 
 ```bash
-npx create-vant-cli-app
+yarn create vant-cli-app
 ```
 
 ### 手动安装
@@ -36,17 +36,14 @@ yarn add @vant/cli --dev
     "test": "vant-cli test",
     "lint": "vant-cli lint",
     "build": "vant-cli build",
+    "prepare": "husky install",
     "release": "vant-cli release",
     "build-site": "vant-cli build-site"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "commit-msg": "vant commit-lint"
-    }
-  },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,vue}": "eslint --fix",
+    "*.md": "prettier --write",
+    "*.{ts,tsx,js,vue,less,scss}": "prettier --write",
+    "*.{ts,tsx,js,vue}": "eslint --fix",
     "*.{vue,css,less,scss}": "stylelint --fix"
   },
   "eslintConfig": {
@@ -59,7 +56,7 @@ yarn add @vant/cli --dev
   "prettier": {
     "singleQuote": true
   },
-  "browserslist": ["Android >= 4.0", "iOS >= 8"]
+  "browserslist": ["Chrome >= 51", "iOS >= 10"]
 }
 ```
 

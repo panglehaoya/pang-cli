@@ -1,44 +1,43 @@
 import sass from 'sass';
-import FriendlyErrorsPlugin from '@nuxt/friendly-errors-webpack-plugin';
+import webpack from 'webpack';
 import { VueLoaderPlugin } from 'vue-loader';
 import { join } from 'path';
-import { existsSync } from 'fs';
 import { consola } from '../common/logger';
+import { existsSync } from 'fs';
 import { WebpackConfig } from '../common/types';
 import {
   CWD,
-  CACHE_DIR,
   STYLE_EXTS,
   SCRIPT_EXTS,
   POSTCSS_CONFIG_FILE,
 } from '../common/constant';
 
-const CACHE_LOADER = {
-  loader: 'cache-loader',
-  options: {
-    cacheDirectory: CACHE_DIR,
-  },
-};
-
 const CSS_LOADERS = [
-  'style-loader',
-  'css-loader',
+  require.resolve('style-loader'),
+  require.resolve('css-loader'),
   {
-    loader: 'postcss-loader',
+    loader: require.resolve('postcss-loader'),
     options: {
-      config: {
-        path: POSTCSS_CONFIG_FILE,
-      },
+      postcssOptions: require(POSTCSS_CONFIG_FILE),
     },
   },
 ];
 
+const VUE_LOADER = {
+  loader: require.resolve('vue-loader'),
+  options: {
+    compilerOptions: {
+      preserveWhitespace: false,
+    },
+  },
+};
+
 const plugins = [
-  new VueLoaderPlugin(),
-  new FriendlyErrorsPlugin({
-    clearConsole: false,
-    logLevel: 'WARNING',
+  new webpack.DefinePlugin({
+    __VUE_OPTIONS_API__: 'true',
+    __VUE_PROD_DEVTOOLS__: 'false',
   }),
+  new VueLoaderPlugin(),
 ];
 
 const tsconfigPath = join(CWD, 'tsconfig.json');
@@ -46,30 +45,29 @@ if (existsSync(tsconfigPath)) {
   const ForkTsCheckerPlugin = require('fork-ts-checker-webpack-plugin');
   plugins.push(
     new ForkTsCheckerPlugin({
-      formatter: 'codeframe',
-      vue: { enabled: true },
-      logger: {
-        // skip info message
-        info() {},
-        warn(message: string) {
-          consola.warn(message);
+      typescript: {
+        extensions: {
+          vue: {
+            enabled: true,
+            compiler: '@vue/compiler-sfc',
+          },
         },
-        error(message: string) {
-          consola.error(message);
+      },
+      logger: {
+        issues: {
+          // skip info message
+          log() {},
+          warn(message: string) {
+            consola.warn(message);
+          },
+          error(message: string) {
+            consola.error(message);
+          },
         },
       },
     })
   );
 }
-
-const VUE_LOADER = {
-  loader: 'vue-loader',
-  options: {
-    compilerOptions: {
-      preserveWhitespace: false,
-    },
-  },
-};
 
 export const baseConfig: WebpackConfig = {
   mode: 'development',
@@ -80,12 +78,12 @@ export const baseConfig: WebpackConfig = {
     rules: [
       {
         test: /\.vue$/,
-        use: [CACHE_LOADER, VUE_LOADER],
+        use: [VUE_LOADER],
       },
       {
         test: /\.(js|ts|jsx|tsx)$/,
         exclude: /node_modules\/(?!(@vant\/cli))/,
-        use: [CACHE_LOADER, 'babel-loader'],
+        use: [require.resolve('babel-loader')],
       },
       {
         test: /\.css$/,
@@ -95,7 +93,7 @@ export const baseConfig: WebpackConfig = {
       {
         test: /\.less$/,
         sideEffects: true,
-        use: [...CSS_LOADERS, 'less-loader'],
+        use: [...CSS_LOADERS, require.resolve('less-loader')],
       },
       {
         test: /\.scss$/,
@@ -103,7 +101,7 @@ export const baseConfig: WebpackConfig = {
         use: [
           ...CSS_LOADERS,
           {
-            loader: 'sass-loader',
+            loader: require.resolve('sass-loader'),
             options: {
               implementation: sass,
             },
@@ -112,9 +110,15 @@ export const baseConfig: WebpackConfig = {
       },
       {
         test: /\.md$/,
-        use: [CACHE_LOADER, VUE_LOADER, '@vant/markdown-loader'],
+        use: [VUE_LOADER, require.resolve('@vant/markdown-loader')],
       },
     ],
   },
   plugins,
+  cache: {
+    type: 'filesystem',
+    buildDependencies: {
+      config: [__filename],
+    },
+  },
 };

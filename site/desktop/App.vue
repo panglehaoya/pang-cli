@@ -1,6 +1,7 @@
 <template>
   <div class="app">
     <van-doc
+      v-if="config"
       :lang="lang"
       :config="config"
       :versions="versions"
@@ -15,7 +16,7 @@
 
 <script>
 import VanDoc from './components';
-import { config, packageVersion } from 'site-desktop-shared';
+import { config } from 'site-desktop-shared';
 import { setLang } from '../common/locales';
 
 export default {
@@ -24,16 +25,20 @@ export default {
   },
 
   data() {
-    const path = location.pathname.replace(/\/index(\.html)?/, '/');
-
     return {
-      packageVersion,
-      simulator: `${path}mobile.html${location.hash}`,
       hasSimulator: true,
     };
   },
 
   computed: {
+    simulator() {
+      if (config.site.simulator?.url) {
+        return config.site.simulator?.url;
+      }
+      const path = location.pathname.replace(/\/index(\.html)?/, '/');
+      return `${path}mobile.html${location.hash}`;
+    },
+
     lang() {
       const { lang } = this.$route.meta;
       return lang || '';
@@ -58,42 +63,62 @@ export default {
     },
 
     versions() {
-      if (config.site.versions) {
-        return [{ label: packageVersion }, ...config.site.versions];
-      }
-
-      return null;
+      return config.site.versions || null;
     },
   },
 
   watch: {
+    // eslint-disable-next-line
+    '$route.path'() {
+      this.setTitleAndToogleSimulator();
+    },
+
     lang(val) {
       setLang(val);
       this.setTitleAndToogleSimulator();
     },
+
+    config: {
+      handler(val) {
+        if (val) {
+          this.setTitleAndToogleSimulator();
+        }
+      },
+      immediate: true,
+    },
   },
 
-  created() {
-    this.setTitleAndToogleSimulator();
+  mounted() {
+    if (this.$route.hash) {
+      this.$nextTick(() => {
+        const el = document.querySelector(this.$route.hash);
+        if (el) {
+          el.scrollIntoView();
+        }
+      });
+    }
   },
 
   methods: {
     setTitleAndToogleSimulator() {
       let { title } = this.config;
 
-      if (this.config.description) {
-        title += ` - ${this.config.description}`;
-      }
-
-      document.title = title;
-
       const navItems = this.config.nav.reduce(
         (result, nav) => [...result, ...nav.items],
         []
       );
+
       const current = navItems.find((item) => {
         return item.path === this.$route.meta.name;
       });
+
+      if (current && current.title) {
+        title = current.title + ' - ' + title;
+      } else if (this.config.description) {
+        title += ` - ${this.config.description}`;
+      }
+
+      document.title = title;
 
       this.hasSimulator = !(
         config.site.hideSimulator ||

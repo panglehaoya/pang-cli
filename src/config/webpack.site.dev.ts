@@ -1,15 +1,15 @@
-import { merge } from 'webpack-merge';
 import WebpackBar from 'webpackbar';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import { get } from 'lodash';
 import { join } from 'path';
+import { merge } from 'webpack-merge';
 import { baseConfig } from './webpack.base';
 import { WebpackConfig } from '../common/types';
 import { getVantConfig, getWebpackConfig } from '../common';
 import { VantCliSitePlugin } from '../compiler/vant-cli-site-plugin';
 import {
   GREEN,
-  SITE_MODILE_SHARED_FILE,
+  SITE_MOBILE_SHARED_FILE,
   SITE_DESKTOP_SHARED_FILE,
 } from '../common/constant';
 
@@ -48,7 +48,6 @@ export function getSiteDevBaseConfig(): WebpackConfig {
     },
     devServer: {
       port: 8080,
-      quiet: true,
       host: '0.0.0.0',
       stats: 'errors-only',
       publicPath: '/',
@@ -56,7 +55,7 @@ export function getSiteDevBaseConfig(): WebpackConfig {
     },
     resolve: {
       alias: {
-        'site-mobile-shared': SITE_MODILE_SHARED_FILE,
+        'site-mobile-shared': SITE_MOBILE_SHARED_FILE,
         'site-desktop-shared': SITE_DESKTOP_SHARED_FILE,
       },
     },

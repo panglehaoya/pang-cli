@@ -2,6 +2,8 @@
  * 同步父窗口和 iframe 的 vue-router 状态
  */
 
+import { config } from 'site-desktop-shared';
+
 let queue = [];
 let isIframeReady = false;
 
@@ -27,7 +29,12 @@ if (window.top === window) {
 
 function getCurrentDir() {
   const router = window.vueRouter;
-  return router.history.current.path;
+  const { path } = router.currentRoute.value;
+
+  if (config.site.simulator?.routeMapper) {
+    return config.site.simulator?.routeMapper(path);
+  }
+  return path;
 }
 
 export function syncPathToParent() {
@@ -63,7 +70,7 @@ export function listenToSyncPath(router) {
 
     const path = event.data?.value || '';
     // should preserve hash for anchor
-    if (router.currentRoute.path !== path) {
+    if (router.currentRoute.value.path !== path) {
       router.replace(path).catch(() => {});
     }
   });

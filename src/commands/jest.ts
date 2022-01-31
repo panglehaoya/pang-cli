@@ -19,15 +19,18 @@ export function test(command: any) {
     logHeapUsage: command.logHeapUsage,
     runInBand: command.runInBand,
     debug: command.debug,
+    // make jest tests faster
+    // see: https://ivantanev.com/make-jest-faster/
+    maxWorkers: '50%',
   } as any;
 
   runCLI(config, [ROOT])
-    .then(response => {
+    .then((response) => {
       if (!response.results.success && !command.watch) {
         process.exit(1);
       }
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
 
       if (!command.watch) {

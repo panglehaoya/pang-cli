@@ -6,10 +6,9 @@ import {
   readFileSync,
   outputFileSync,
 } from 'fs-extra';
-import { mergeWithCustomize } from 'webpack-merge';
+import { merge } from 'webpack-merge';
 import { SRC_DIR, getVantConfig, ROOT_WEBPACK_CONFIG_FILE } from './constant';
 import { WebpackConfig } from './types';
-import _ from 'lodash';
 
 export const EXT_REGEXP = /\.\w+$/;
 export const SFC_REGEXP = /\.(vue)$/;
@@ -35,6 +34,7 @@ export function hasDefaultExport(code: string) {
 export function getComponents() {
   const EXCLUDES = ['.DS_Store'];
   const dirs = readdirSync(SRC_DIR);
+
   return dirs
     .filter((dir) => !EXCLUDES.includes(dir))
     .filter((dir) =>
@@ -102,22 +102,17 @@ export function normalizePath(path: string): string {
   return path.replace(/\\/g, '/');
 }
 
-export function getWebpackConfig(defaultConfig: WebpackConfig): object {
+export function getWebpackConfig(defaultConfig: WebpackConfig): WebpackConfig {
   if (existsSync(ROOT_WEBPACK_CONFIG_FILE)) {
     const config = require(ROOT_WEBPACK_CONFIG_FILE);
-    const customMerge = mergeWithCustomize({
-      customizeArray(arr1, arr2) {
-        return _.uniqWith([...arr1, ...arr2], _.isEqual);
-      }
-    })
 
     // 如果是函数形式，可能并不仅仅是添加额外的处理流程，而是在原有流程上进行修改
     // 比如修改markdown-loader,添加options.enableMetaData
     if (typeof config === 'function') {
-      return customMerge(defaultConfig, config(defaultConfig));
+      return merge(defaultConfig, config(defaultConfig));
     }
 
-    return customMerge(defaultConfig, config);
+    return merge(defaultConfig, config);
   }
 
   return defaultConfig;

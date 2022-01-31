@@ -1,11 +1,10 @@
 import { readFileSync } from 'fs-extra';
 import { consola } from '../common/logger';
 
-const commitRE = /^(revert: )?(fix|feat|docs|perf|test|types|style|build|chore|refactor|breaking change)(\(.+\))?: .{1,50}/;
+const commitRE = /^(revert: )?(fix|feat|docs|perf|test|types|style|build|chore|release|refactor|breaking change)(\(.+\))?: .{1,50}/;
 const mergeRE = /Merge /;
 
-export function commitLint() {
-  const gitParams = process.env.HUSKY_GIT_PARAMS as string;
+export function commitLint(gitParams: string) {
   const commitMsg = readFileSync(gitParams, 'utf-8').trim();
 
   if (!commitRE.test(commitMsg) && !mergeRE.test(commitMsg)) {
@@ -29,6 +28,7 @@ Allowed Types:
 - types
 - build
 - chore
+- release
 - refactor
 - breaking change
 - Merge branch 'foo' into 'bar'
